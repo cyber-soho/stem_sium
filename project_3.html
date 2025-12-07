@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 353 Assessment Proposal - Interactive Explorer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Corporate Blue & Slate -->
+    <!-- Application Structure Plan: 
+         This SPA transforms the linear proposal document into a dashboard-style explorer.
+         1. 'Dashboard Home': High-level Executive Summary and Rationale to set the context.
+         2. 'Assessment Structure': An interactive Doughnut chart visualization of the grading weights. Clicking slices reveals the specific definitions (Standard vs Proposed) for each component.
+         3. 'Project Timeline': An interactive step-by-step flow. Users click on Weeks 1-4 to see specific topics and deliverables, helping visualize the accelerated 4-week format.
+         4. 'Rubric Explorer': A dynamic filtering interface. The rubric is too dense for a static table on mobile. Users select a 'Criterion' (e.g., Mobile Solution Engineering) to see the specific requirements across all 4 mastery levels.
+         5. 'Performance Scale': A visual gauge/bar chart representing the grade ranges and their qualitative descriptions.
+         
+         Why: This structure allows the Dean/Reviewer to drill down into specific areas of concern (e.g., "How are we grading the code?") without being overwhelmed by a wall of text. It emphasizes the "Systematic" nature of the proposal.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Chart Container Utilities */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max width constraint */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .active-tab {
+            background-color: #2563eb; /* blue-600 */
+            color: white;
+            border-color: #2563eb;
+        }
+        
+        .timeline-point {
+            transition: all 0.3s ease;
+        }
+        .timeline-point:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-3xl">📊</span>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 leading-tight">CS 353 Assessment Proposal</h1>
+                    <p class="text-xs text-slate-500">Integrative Project 3 | Competency-Based Framework</p>
+                </div>
+            </div>
+            <div class="hidden md:block text-right text-xs text-slate-400">
+                <p>To: Peter Nyarko, Associate Dean</p>
+                <p>Date: December 9, 2025</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Navigation Sidebar -->
+        <nav class="lg:col-span-3 space-y-2">
+            <button onclick="switchTab('overview')" id="nav-overview" class="w-full text-left px-4 py-3 rounded-lg font-medium transition-colors border border-transparent active-tab shadow-sm">
+                📝 Executive Summary
+            </button>
+            <button onclick="switchTab('structure')" id="nav-structure" class="w-full text-left px-4 py-3 rounded-lg font-medium transition-colors bg-white hover:bg-slate-100 border border-slate-200 text-slate-600">
+                ⚖️ Weighting & Structure
+            </button>
+            <button onclick="switchTab('timeline')" id="nav-timeline" class="w-full text-left px-4 py-3 rounded-lg font-medium transition-colors bg-white hover:bg-slate-100 border border-slate-200 text-slate-600">
+                📅 Implementation Timeline
+            </button>
+            <button onclick="switchTab('rubric')" id="nav-rubric" class="w-full text-left px-4 py-3 rounded-lg font-medium transition-colors bg-white hover:bg-slate-100 border border-slate-200 text-slate-600">
+                ✅ Standardized Rubric
+            </button>
+            <button onclick="switchTab('performance')" id="nav-performance" class="w-full text-left px-4 py-3 rounded-lg font-medium transition-colors bg-white hover:bg-slate-100 border border-slate-200 text-slate-600">
+                📈 Performance Scale
+            </button>
+        </nav>
+
+        <!-- Content Area -->
+        <section class="lg:col-span-9 bg-white rounded-xl shadow-lg border border-slate-200 min-h-[600px] p-6 lg:p-8 relative overflow-hidden">
+            
+            <!-- SECTION: Overview (Default) -->
+            <div id="tab-overview" class="tab-content transition-opacity duration-300">
+                <div class="border-b border-slate-100 pb-4 mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Executive Summary & Rationale</h2>
+                    <p class="text-slate-500 mt-1">Why we need to change the assessment model for CS 353.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div class="prose text-slate-600">
+                        <p class="mb-4">
+                            The current standardization of assessment across STEM programs—heavily reliant on traditional, computational-based exams using proctoring tools—does not fully support the advanced pedagogical objectives of <strong>CS 353 - Integrative Project 3</strong>.
+                        </p>
+                        <p class="mb-4">
+                            As a 300-level course, CS 353 requires students to synthesize complex skills:
+                        </p>
+                        <ul class="list-disc pl-5 space-y-2 mb-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                            <li><strong>Mobile Application Development</strong></li>
+                            <li><strong>Software Engineering</strong></li>
+                            <li><strong>IT Project Management (SCRUM)</strong></li>
+                        </ul>
+                        <p>
+                            To ensure assessment validity and academic rigor, I propose a <strong>Competency-Based Assessment Framework</strong>. This framework shifts the focus from isolated testing to <strong>Milestone Deliverables</strong>.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-4">Core Objectives</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <span class="text-2xl mr-3">🌍</span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800">Global Leadership</h4>
+                                    <p class="text-sm text-slate-600">Prepare students for leadership in international settings.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-2xl mr-3">📱</span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800">Practical Application</h4>
+                                    <p class="text-sm text-slate-600">Deploy functional mobile software using real tools.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="text-2xl mr-3">🔄</span>
+                                <div>
+                                    <h4 class="font-bold text-slate-800">Agile Methodology</h4>
+                                    <p class="text-sm text-slate-600">Manage projects using standard SCRUM artifacts.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Assessment Structure -->
+            <div id="tab-structure" class="tab-content hidden transition-opacity duration-300">
+                <div class="border-b border-slate-100 pb-4 mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Assessment Structure</h2>
+                    <p class="text-slate-500 mt-1">Recommended weighting and redefinition of deliverables.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Chart Column -->
+                    <div class="flex flex-col items-center justify-center bg-slate-50 rounded-xl p-4 border border-slate-200">
+                        <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Grade Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="weightChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center text-slate-400 mt-2">Click a slice to view details.</p>
+                    </div>
+
+                    <!-- Details Column -->
+                    <div class="flex flex-col justify-center">
+                        <div id="assessment-detail-card" class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                            <h3 class="text-xl font-bold text-blue-600 mb-2" id="detail-title">Select a Component</h3>
+                            <div class="mb-4">
+                                <span class="text-xs font-bold text-slate-400 uppercase">Standard Definition</span>
+                                <p class="text-slate-600 italic" id="detail-standard">Hover or click the chart...</p>
+                            </div>
+                            <div class="border-t border-slate-100 pt-4">
+                                <span class="text-xs font-bold text-blue-600 uppercase">Proposed Definition (CS 353)</span>
+                                <h4 class="text-lg font-bold text-slate-800 mt-1" id="detail-proposed-title">--</h4>
+                                <p class="text-slate-700 mt-2" id="detail-focus">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Timeline -->
+            <div id="tab-timeline" class="tab-content hidden transition-opacity duration-300">
+                <div class="border-b border-slate-100 pb-4 mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Implementation Timeline</h2>
+                    <p class="text-slate-500 mt-1">4-Week Accelerated Sequence with Assessment Checkpoints.</p>
+                </div>
+
+                <!-- Timeline Visual -->
+                <div class="relative mb-8 px-4">
+                    <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 rounded-full z-0"></div>
+                    <div class="relative z-10 flex justify-between">
+                        <button onclick="updateTimeline(1)" class="timeline-point w-12 h-12 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center shadow-lg hover:bg-blue-700 ring-4 ring-white focus:outline-none">1</button>
+                        <button onclick="updateTimeline(2)" class="timeline-point w-12 h-12 rounded-full bg-slate-300 text-slate-600 font-bold flex items-center justify-center shadow hover:bg-slate-400 ring-4 ring-white focus:outline-none">2</button>
+                        <button onclick="updateTimeline(3)" class="timeline-point w-12 h-12 rounded-full bg-slate-300 text-slate-600 font-bold flex items-center justify-center shadow hover:bg-slate-400 ring-4 ring-white focus:outline-none">3</button>
+                        <button onclick="updateTimeline(4)" class="timeline-point w-12 h-12 rounded-full bg-slate-300 text-slate-600 font-bold flex items-center justify-center shadow hover:bg-slate-400 ring-4 ring-white focus:outline-none">4</button>
+                    </div>
+                </div>
+
+                <!-- Timeline Detail -->
+                <div id="timeline-detail" class="bg-blue-50 border border-blue-100 rounded-xl p-6 transition-all duration-300">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-blue-900" id="t-title">Week 1: Project Charter & Backlog</h3>
+                            <span class="inline-block bg-blue-200 text-blue-800 text-xs px-2 py-1 rounded mt-1" id="t-topics">Topics 1-4</span>
+                        </div>
+                        <span class="text-4xl" id="t-icon">📜</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold text-slate-700 mb-2">Focus Area</h4>
+                            <p class="text-slate-600 text-sm" id="t-desc">
+                                Submission of the "Project Charter," selection of the business problem, and the initial "Product Backlog" in the chosen Project Management tool.
+                            </p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border border-blue-100 shadow-sm">
+                            <h4 class="font-bold text-red-600 mb-1 text-sm uppercase">Deliverable</h4>
+                            <p class="text-slate-800 font-medium" id="t-del">Continuous Assessment Checkpoint</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: Rubric -->
+            <div id="tab-rubric" class="tab-content hidden transition-opacity duration-300">
+                <div class="border-b border-slate-100 pb-4 mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Standardized Rubric</h2>
+                    <p class="text-slate-500 mt-1">Interactive matrix for the 5 key criteria.</p>
+                </div>
+
+                <!-- Controls -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Select Criterion to View Details:</label>
+                    <select id="rubric-selector" onchange="updateRubric()" class="block w-full md:w-1/2 p-2.5 bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                        <option value="0">1. IT Project Management (Agile/SCRUM)</option>
+                        <option value="1">2. Mobile Solution Engineering</option>
+                        <option value="2">3. Business Analysis & Problem Solving</option>
+                        <option value="3">4. Lab/Tool Proficiency</option>
+                        <option value="4">5. Professional Communication & Presentation</option>
+                    </select>
+                </div>
+
+                <!-- Cards Display -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="rubric-display">
+                    <!-- Cards injected via JS -->
+                </div>
+            </div>
+
+            <!-- SECTION: Performance Scale -->
+            <div id="tab-performance" class="tab-content hidden transition-opacity duration-300">
+                <div class="border-b border-slate-100 pb-4 mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Performance Scale</h2>
+                    <p class="text-slate-500 mt-1">Course Learning Outcomes (CLO) Mastery Levels.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="chart-container">
+                            <canvas id="perfChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                            <h4 class="font-bold text-green-800">Exemplary (93-100%)</h4>
+                            <p class="text-xs text-green-700 mt-1">Consultant Level. Market-ready solution. Mastery of Agile without supervision.</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <h4 class="font-bold text-blue-800">Proficient (83-92%)</h4>
+                            <p class="text-xs text-blue-700 mt-1">Competent. Functional requirements met. Professional presentation.</p>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                            <h4 class="font-bold text-yellow-800">Developing (70-82%)</h4>
+                            <p class="text-xs text-yellow-700 mt-1">Basic. Functions but has UX/stability issues. Inconsistent Agile process.</p>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+                            <h4 class="font-bold text-red-800">Unsatisfactory (&lt; 70%)</h4>
+                            <p class="text-xs text-red-700 mt-1">Insufficient. Fails to compile. Waterfall dev instead of Agile.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-50 border-t border-slate-200 mt-auto py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-400 text-sm">
+            <p>Drafted by Asen Grozdanov, Professor | Department of Computer Science</p>
+        </div>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        // --- DATA STORE ---
+        const assessmentData = [
+            {
+                component: "Continuous Assessment",
+                weight: 30,
+                color: "#3b82f6", // blue-500
+                standard: "Quizzes/Discussions",
+                proposedTitle: "Agile Artifacts & Sprint Performance",
+                focus: "Active participation in SCRUM ceremonies (Stand-ups, Sprint Reviews), maintenance of the Product Backlog, Burn-down charts, and weekly repository commits (Git) showing incremental progress."
+            },
+            {
+                component: "Midterm Assessment",
+                weight: 30,
+                color: "#6366f1", // indigo-500
+                standard: "Proctored Exam",
+                proposedTitle: "MVP (Minimum Viable Product) Demo",
+                focus: "A functional 'Alpha' release of the mobile application. Key architectural decisions must be implemented, and the core 'Happy Path' user flow must be demonstrable on an emulator or device."
+            },
+            {
+                component: "Final Assessment",
+                weight: 40,
+                color: "#1e40af", // blue-800
+                standard: "Comprehensive Exam",
+                proposedTitle: "Final Product Release & Consulting Pitch",
+                focus: "Deployment of the fully polished mobile application, a comprehensive technical report ('Lessons Learned'), and a formal public presentation pitching the solution to the 'client'."
+            }
+        ];
+
+        const timelineData = [
+            {
+                week: 1,
+                title: "Project Charter & Backlog Setup",
+                topics: "Topics 1-4",
+                desc: "Submission of the 'Project Charter,' selection of the business problem, and the initial 'Product Backlog' in the chosen Project Management tool.",
+                del: "Continuous Assessment Checkpoint",
+                icon: "📜"
+            },
+            {
+                week: 2,
+                title: "Sprint 1 & Midterm Assessment",
+                topics: "Topics 5-8",
+                desc: "Completion of the Design phase and Sprint 1. Student presents a working skeleton (MVP) of the mobile app to verify architecture and core requirements.",
+                del: "Midterm (MVP Demo)",
+                icon: "🚧"
+            },
+            {
+                week: 3,
+                title: "Development & Testing Sprints",
+                topics: "Topics 9-13",
+                desc: "'Intermediate Presentation' and 'Testing/Error Resolution'. Code reviews focus on Software Engineering best practices.",
+                del: "Continuous Assessment Checkpoint",
+                icon: "🐞"
+            },
+            {
+                week: 4,
+                title: "Final Release & Retrospective",
+                topics: "Topics 14-17",
+                desc: "Submission of the Technical Report, Source Code, and the Public Presentation. Includes a specific section on 'Lessons Learned' and 'Future Research'.",
+                del: "Final Assessment / Defense",
+                icon: "🚀"
+            }
+        ];
+
+        const rubricData = [
+            {
+                criteria: "1. IT Project Management (Agile/SCRUM)",
+                levels: [
+                    { title: "Exemplary (4 pts)", text: "<strong>Agile Master.</strong> Project managed professionally using Jira/Trello. Sprints are well-defined. Retrospectives show genuine process improvement.", class: "bg-green-50 border-green-200" },
+                    { title: "Proficient (3 pts)", text: "<strong>Structured.</strong> Follows SCRUM events. Backlog is maintained. Deadlines are met, though sprint velocity may vary.", class: "bg-blue-50 border-blue-200" },
+                    { title: "Developing (2 pts)", text: "<strong>Inconsistent.</strong> 'Agile in name only.' Planning is reactive. Artifacts created last minute.", class: "bg-yellow-50 border-yellow-200" },
+                    { title: "Novice (1 pt)", text: "<strong>Chaotic.</strong> No clear methodology. Development appears random with no tracking.", class: "bg-red-50 border-red-200" }
+                ]
+            },
+            {
+                criteria: "2. Mobile Solution Engineering",
+                levels: [
+                    { title: "Exemplary (4 pts)", text: "<strong>Production Quality.</strong> Seamless UI/UX. Sophisticated native features (GPS, Camera). Architecture (MVC/MVVM) is clean/scalable.", class: "bg-green-50 border-green-200" },
+                    { title: "Proficient (3 pts)", text: "<strong>Functional.</strong> App works. UI is standard but usable. Logic is sound. Good use of frameworks.", class: "bg-blue-50 border-blue-200" },
+                    { title: "Developing (2 pts)", text: "<strong>Glitchy.</strong> App runs but is buggy. UI is unintuitive. Code logic is hard-coded or brittle.", class: "bg-yellow-50 border-yellow-200" },
+                    { title: "Novice (1 pt)", text: "<strong>Non-Functional.</strong> App does not compile or cannot be installed. Core features missing.", class: "bg-red-50 border-red-200" }
+                ]
+            },
+            {
+                criteria: "3. Business Analysis & Problem Solving",
+                levels: [
+                    { title: "Exemplary (4 pts)", text: "<strong>Strategic Insight.</strong> Addresses root cause. Feasibility analysis grounded in real-world constraints.", class: "bg-green-50 border-green-200" },
+                    { title: "Proficient (3 pts)", text: "<strong>Solid Proposal.</strong> Addresses problem stated. Analysis logical and supported by basic research.", class: "bg-blue-50 border-blue-200" },
+                    { title: "Developing (2 pts)", text: "<strong>Weak Link.</strong> Technically built but doesn't solve specific user problem. Analysis superficial.", class: "bg-yellow-50 border-yellow-200" },
+                    { title: "Novice (1 pt)", text: "<strong>Irrelevant.</strong> Ignores client needs entirely. No business context.", class: "bg-red-50 border-red-200" }
+                ]
+            },
+            {
+                criteria: "4. Lab/Tool Proficiency",
+                levels: [
+                    { title: "Exemplary (4 pts)", text: "<strong>Expert Usage.</strong> Mastery of Android Studio/Xcode and Git branching. Testing suites utilized.", class: "bg-green-50 border-green-200" },
+                    { title: "Proficient (3 pts)", text: "<strong>Competent.</strong> Effective use of IDE/Git. Able to deploy to emulators. Environment configured.", class: "bg-blue-50 border-blue-200" },
+                    { title: "Developing (2 pts)", text: "<strong>Struggling.</strong> Build environment errors. Poor commit history. Hard-coded paths.", class: "bg-yellow-50 border-yellow-200" },
+                    { title: "Novice (1 pt)", text: "<strong>Ineffective.</strong> Unable to set up environment. No version control.", class: "bg-red-50 border-red-200" }
+                ]
+            },
+            {
+                criteria: "5. Professional Communication",
+                levels: [
+                    { title: "Exemplary (4 pts)", text: "<strong>Executive Presence.</strong> Persuasive, concise presentation. 'Lessons Learned' show deep introspection.", class: "bg-green-50 border-green-200" },
+                    { title: "Proficient (3 pts)", text: "<strong>Clear.</strong> Organized presentation. Report readable and accurate.", class: "bg-blue-50 border-blue-200" },
+                    { title: "Developing (2 pts)", text: "<strong>Unpolished.</strong> Reading off slides. Report disorganized or has errors.", class: "bg-yellow-50 border-yellow-200" },
+                    { title: "Novice (1 pt)", text: "<strong>Unprofessional.</strong> Unprepared. Report missing or incoherent.", class: "bg-red-50 border-red-200" }
+                ]
+            }
+        ];
+
+        // --- STATE MANAGEMENT ---
+        let currentTab = 'overview';
+
+        // --- FUNCTIONS ---
+
+        function switchTab(tabName) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Show selected
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            
+            // Update Nav Styling
+            document.querySelectorAll('nav button').forEach(btn => {
+                // Remove active styles
+                btn.classList.remove('active-tab', 'bg-blue-600', 'text-white', 'border-transparent', 'shadow-sm');
+                // Add inactive styles (explicitly add bg-white to ensure contrast against slate-50 body if needed, or just rely on default)
+                btn.classList.add('text-slate-600', 'border-slate-200', 'hover:bg-slate-100', 'bg-white'); 
+            });
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            // Remove inactive styles
+            activeBtn.classList.remove('text-slate-600', 'border-slate-200', 'hover:bg-slate-100', 'bg-white'); 
+            // Add active styles
+            activeBtn.classList.add('active-tab', 'border-transparent', 'shadow-sm');
+
+            currentTab = tabName;
+        }
+
+        function updateTimeline(week) {
+            const data = timelineData[week - 1];
+            
+            // Visual Update for buttons
+            const buttons = document.querySelectorAll('.timeline-point');
+            buttons.forEach((btn, idx) => {
+                if (idx + 1 === week) {
+                    btn.classList.remove('bg-slate-300', 'text-slate-600');
+                    btn.classList.add('bg-blue-600', 'text-white');
+                } else {
+                    btn.classList.add('bg-slate-300', 'text-slate-600');
+                    btn.classList.remove('bg-blue-600', 'text-white');
+                }
+            });
+
+            // Content Update with fade effect
+            const container = document.getElementById('timeline-detail');
+            container.style.opacity = '0';
+            
+            setTimeout(() => {
+                document.getElementById('t-title').innerText = `Week ${week}: ${data.title}`;
+                document.getElementById('t-topics').innerText = data.topics;
+                document.getElementById('t-icon').innerText = data.icon;
+                document.getElementById('t-desc').innerText = data.desc;
+                document.getElementById('t-del').innerText = data.del;
+                container.style.opacity = '1';
+            }, 300);
+        }
+
+        function updateRubric() {
+            const index = document.getElementById('rubric-selector').value;
+            const data = rubricData[index];
+            const container = document.getElementById('rubric-display');
+            
+            container.innerHTML = ''; // Clear
+
+            data.levels.forEach(level => {
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-xl border ${level.class} shadow-sm`;
+                card.innerHTML = `
+                    <h4 class="font-bold text-slate-800 mb-2 border-b border-black/10 pb-2">${level.title}</h4>
+                    <p class="text-sm text-slate-700 leading-relaxed">${level.text}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- CHARTS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Weight Chart
+            const ctxWeight = document.getElementById('weightChart').getContext('2d');
+            const weightChart = new Chart(ctxWeight, {
+                type: 'doughnut',
+                data: {
+                    labels: assessmentData.map(d => d.component),
+                    datasets: [{
+                        data: assessmentData.map(d => d.weight),
+                        backgroundColor: assessmentData.map(d => d.color),
+                        borderWidth: 0,
+                        hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    onClick: (evt, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const data = assessmentData[index];
+                            
+                            // Update Detail Card
+                            document.getElementById('detail-title').innerText = data.component;
+                            document.getElementById('detail-title').style.color = data.color;
+                            document.getElementById('detail-standard').innerText = data.standard;
+                            document.getElementById('detail-proposed-title').innerText = data.proposedTitle;
+                            document.getElementById('detail-focus').innerText = data.focus;
+                        }
+                    }
+                }
+            });
+
+            // Set default details
+            const defData = assessmentData[0];
+            document.getElementById('detail-title').innerText = defData.component;
+            document.getElementById('detail-standard').innerText = defData.standard;
+            document.getElementById('detail-proposed-title').innerText = defData.proposedTitle;
+            document.getElementById('detail-focus').innerText = defData.focus;
+
+
+            // 2. Performance Chart
+            const ctxPerf = document.getElementById('perfChart').getContext('2d');
+            new Chart(ctxPerf, {
+                type: 'bar',
+                data: {
+                    labels: ['Unsatisfactory', 'Developing', 'Proficient', 'Exemplary'],
+                    datasets: [{
+                        label: 'Min Score',
+                        data: [0, 70, 83, 93], // Start of range
+                        backgroundColor: ['#ef4444', '#eab308', '#3b82f6', '#22c55e'],
+                        borderRadius: 4
+                    }, {
+                        label: 'Max Score', // Hidden logic for visual stacking if needed, but simple bar is enough for ranges
+                        data: [69, 82, 92, 100],
+                        hidden: true
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            min: 0,
+                            max: 100,
+                            title: { display: true, text: 'Grade Percentage (%)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => items[0].label,
+                                label: (context) => {
+                                    const ranges = ["< 70%", "70% - 82%", "83% - 92%", "93% - 100%"];
+                                    return `Range: ${ranges[context.dataIndex]}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Init Rubric
+            updateRubric();
+        });
+
+    </script>
+    
+    <!-- Visualization & Content Choices: 
+         1. Doughnut Chart for Weighting: Chosen to visually represent the 3 parts of the whole grade. Interaction (click) is used to drill down into text details, saving screen space.
+         2. Custom Timeline (Buttons + Card): Chosen over a chart because it represents a linear process. The interaction allows users to step through the month week-by-week.
+         3. Dynamic Cards for Rubric: A table with 20 cells is unreadable on mobile. A filterable card system allows deep diving into one criterion at a time.
+         4. Bar Chart for Performance: Visualizes the grade distribution buckets clearly.
+         
+         Library Justification: Chart.js is robust, canvas-based (No SVG), and handles the interactivity requirements perfectly.
+    -->
+</body>
+</html>

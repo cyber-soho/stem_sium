@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 252 Assessment Proposal - Interactive Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Slate (Neutral Background), Blue (Primary Action), Emerald (Success/Exemplary), Rose (Danger/Unsatisfactory) -->
+    
+    <!-- Application Structure Plan: 
+         The application is designed as an "Executive Dashboard" to present the proposal professionally to the Dean. 
+         It is divided into four logical sections accessible via a navigation bar:
+         1. Executive Summary: The "Why" and "What" (Rationale).
+         2. Assessment Structure: Interactive visualization of the Grading Weights and the shift in definition (Standard vs. Proposed).
+         3. The Rubric: A deep-dive explorer for the Competency-Based Assessment Framework, allowing users to toggle between criteria.
+         4. Implementation Timeline: A chronological view of how the assessment integrates with the course topics.
+         This structure allows the decision-maker to get the high-level overview first, then drill down into the specifics of *how* it will be graded and *when*.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Report Info -> Goal: Compare Weights -> Viz: Doughnut Chart (Chart.js) -> Interaction: Click slice to see specific definitions -> Justification: Clearly shows the 30/30/40 split while allowing detailed text comparison without clutter.
+         2. Report Info -> Goal: Explain Rubric -> Viz: Interactive Accordion/Cards (HTML/JS) -> Interaction: Click criteria to reveal mastery levels -> Justification: The rubric is text-heavy; a table is too dense for a dashboard. Tabs/Cards allow focus on one dimension at a time.
+         3. Report Info -> Goal: Timeline -> Viz: Stepper Process Flow (HTML/CSS) -> Interaction: Click month to see deliverables -> Justification: Linear progression matches the semester flow.
+         
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <style>
+        /* Chart Container Styling per requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Header / Meta Info -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-slate-900">CS 252: Integrative Project 2</h1>
+                <p class="text-sm text-slate-500">Assessment Standardization Proposal | Dec 9, 2025</p>
+            </div>
+            <div class="text-right hidden sm:block">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Memorandum To</p>
+                <p class="text-sm font-medium text-slate-700">Peter Nyarko, Assoc. Dean of STEM</p>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="bg-slate-100 border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-8" id="nav-container">
+                    <button onclick="switchView('summary')" class="nav-btn border-b-2 border-blue-600 text-blue-600 px-3 py-3 text-sm font-medium transition-colors" data-target="summary">Executive Summary</button>
+                    <button onclick="switchView('structure')" class="nav-btn border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 px-3 py-3 text-sm font-medium transition-colors" data-target="structure">Grading Structure</button>
+                    <button onclick="switchView('rubric')" class="nav-btn border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 px-3 py-3 text-sm font-medium transition-colors" data-target="rubric">Assessment Rubric</button>
+                    <button onclick="switchView('timeline')" class="nav-btn border-b-2 border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 px-3 py-3 text-sm font-medium transition-colors" data-target="timeline">Timeline & Implementation</button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- VIEW 1: EXECUTIVE SUMMARY -->
+        <section id="view-summary" class="animate-fade-in space-y-8">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 md:p-8">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Executive Summary & Rationale</h2>
+                    <p class="text-slate-600 leading-relaxed">
+                        This section outlines the core conflict between current standardization efforts and the pedagogical needs of CS 252. 
+                        It proposes a shift from traditional proctored exams to a competency-based framework suitable for full-stack development projects.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-rose-50 rounded-xl p-6 border border-rose-100">
+                        <div class="flex items-center mb-4">
+                            <span class="text-2xl mr-3">⚠️</span>
+                            <h3 class="text-lg font-bold text-rose-800">The Problem</h3>
+                        </div>
+                        <p class="text-rose-900/80 mb-4">
+                            Current STEM assessment standardization relies heavily on traditional, computational-based exams using proctoring tools like Respondus.
+                        </p>
+                        <ul class="space-y-2 text-sm text-rose-800">
+                            <li class="flex items-start">
+                                <span class="mr-2">•</span> Does not accommodate practical, hands-on components.
+                            </li>
+                            <li class="flex items-start">
+                                <span class="mr-2">•</span> Fails to measure synthesis of Web Development & Database skills.
+                            </li>
+                            <li class="flex items-start">
+                                <span class="mr-2">•</span> Misaligns with the "Integrative Project" course objectives.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-emerald-50 rounded-xl p-6 border border-emerald-100">
+                        <div class="flex items-center mb-4">
+                            <span class="text-2xl mr-3">✅</span>
+                            <h3 class="text-lg font-bold text-emerald-800">The Proposed Solution</h3>
+                        </div>
+                        <p class="text-emerald-900/80 mb-4">
+                            Implement a <strong>Competency-Based Assessment Framework</strong> that shifts focus from isolated testing to Milestone Deliverables.
+                        </p>
+                        <ul class="space-y-2 text-sm text-emerald-800">
+                            <li class="flex items-start">
+                                <span class="mr-2">•</span> Focus on <strong>Application</strong> of tools (HTML/CSS/JS/PHP/SQL).
+                            </li>
+                            <li class="flex items-start">
+                                <span class="mr-2">•</span> Validate skills in <strong>Lab-Virtualized Environments</strong>.
+                            </li>
+                            <li class="flex items-start">
+                                <span class="mr-2">•</span> Ensure academic rigor through <strong>Defense & Code Review</strong>.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: GRADING STRUCTURE -->
+        <section id="view-structure" class="hidden animate-fade-in space-y-8">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Recommended Assessment Weighting</h2>
+                <p class="text-slate-600 mb-8">
+                    We maintain the university's required grading distribution (30/30/40) but strictly redefine the <em>nature</em> of these assessments to fit the 4-week accelerated format. 
+                    Interact with the chart below to see the specific changes for CS 252.
+                </p>
+
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <!-- Chart Container -->
+                    <div class="w-full">
+                        <div class="chart-container">
+                            <canvas id="weightingChart"></canvas>
+                        </div>
+                        <p class="text-center text-xs text-slate-400 mt-4">Click a section of the chart to view details.</p>
+                    </div>
+
+                    <!-- Details Panel -->
+                    <div class="bg-slate-50 rounded-xl border border-slate-200 p-6 h-full flex flex-col justify-center">
+                        <h3 id="weight-title" class="text-xl font-bold text-slate-800 mb-2">Select a Component</h3>
+                        <div id="weight-content" class="space-y-4">
+                            <p class="text-slate-500 italic">Click on the doughnut chart to see the comparison between the Standard Definition and the Proposed Definition for Integrative Project 2.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+             <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mt-8">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">Performance Scale & Grade Distribution</h3>
+                <p class="text-slate-600 mb-6">Standardized scale to translate project quality into numerical grades across all STEM sections.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Performance Level</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Grade Range</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Mastery Description</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">Exemplary</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">93% - 100%</td>
+                                <td class="px-6 py-4 text-sm text-slate-600"><strong>Distinguished.</strong> Professional-grade, secure, normalized (3NF), modular code. Complete autonomy.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Proficient</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">83% - 92%</td>
+                                <td class="px-6 py-4 text-sm text-slate-600"><strong>Competent.</strong> Effective solution, minor UI bugs, correct SQL, standard practices followed.</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Developing</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">70% - 82%</td>
+                                <td class="px-6 py-4 text-sm text-slate-600"><strong>Basic.</strong> Functions but lacks robustness. Inefficient queries, non-responsive UI. Heavy instructor reliance.</td>
+                            </tr>
+                             <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-rose-100 text-rose-800">Unsatisfactory</span></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">&lt; 70%</td>
+                                <td class="px-6 py-4 text-sm text-slate-600"><strong>Insufficient.</strong> Fails to connect/run. Missing critical CRUD. Plagiarism or no contribution.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: RUBRIC -->
+        <section id="view-rubric" class="hidden animate-fade-in">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 md:p-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Standardized CS 252 Project Rubric</h2>
+                <p class="text-slate-600 mb-6">
+                    This rubric evaluates the four core dimensions of a technical project: Methodology, Implementation, Analysis, and Communication.
+                    Select a criteria below to view the detailed grading descriptors.
+                </p>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <!-- Sidebar Selector -->
+                    <div class="space-y-2 lg:col-span-1">
+                        <button onclick="renderRubric(0)" class="rubric-btn w-full text-left px-4 py-3 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 font-medium transition-all shadow-sm ring-2 ring-blue-500" data-idx="0">
+                            1. Methodology & Analysis
+                        </button>
+                        <button onclick="renderRubric(1)" class="rubric-btn w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium transition-all" data-idx="1">
+                            2. Technical Implementation
+                        </button>
+                        <button onclick="renderRubric(2)" class="rubric-btn w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium transition-all" data-idx="2">
+                            3. Analytical Rigor
+                        </button>
+                        <button onclick="renderRubric(3)" class="rubric-btn w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium transition-all" data-idx="3">
+                            4. Lab/Tool Proficiency
+                        </button>
+                         <button onclick="renderRubric(4)" class="rubric-btn w-full text-left px-4 py-3 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium transition-all" data-idx="4">
+                            5. Communication
+                        </button>
+                    </div>
+
+                    <!-- Detail View -->
+                    <div class="lg:col-span-2 bg-slate-50 rounded-xl border border-slate-200 p-6">
+                        <div id="rubric-display" class="space-y-6">
+                            <!-- Content injected via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: TIMELINE -->
+        <section id="view-timeline" class="hidden animate-fade-in">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 md:p-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Implementation Timeline</h2>
+                <p class="text-slate-600 mb-8">
+                    Alignment of assessment checkpoints with the 17-topic typical course sequence for CS 252.
+                    Click on a month to see the deliverables.
+                </p>
+
+                <!-- Timeline Visual -->
+                <div class="relative mb-12">
+                    <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 rounded z-0"></div>
+                    <div class="relative z-10 flex justify-between max-w-3xl mx-auto">
+                        <button onclick="updateTimeline(0)" class="timeline-dot w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-md hover:scale-110 transition-transform ring-4 ring-blue-100">1</button>
+                        <button onclick="updateTimeline(1)" class="timeline-dot w-12 h-12 rounded-full bg-white border-2 border-slate-300 text-slate-500 flex items-center justify-center font-bold shadow-sm hover:scale-110 hover:border-blue-400 transition-transform">2</button>
+                        <button onclick="updateTimeline(2)" class="timeline-dot w-12 h-12 rounded-full bg-white border-2 border-slate-300 text-slate-500 flex items-center justify-center font-bold shadow-sm hover:scale-110 hover:border-blue-400 transition-transform">3</button>
+                        <button onclick="updateTimeline(3)" class="timeline-dot w-12 h-12 rounded-full bg-white border-2 border-slate-300 text-slate-500 flex items-center justify-center font-bold shadow-sm hover:scale-110 hover:border-blue-400 transition-transform">4</button>
+                    </div>
+                    <div class="flex justify-between max-w-3xl mx-auto mt-2 text-sm font-medium text-slate-600">
+                        <span class="text-blue-700">Month 1</span>
+                        <span>Month 2</span>
+                        <span>Month 3</span>
+                        <span>Month 4</span>
+                    </div>
+                </div>
+
+                <!-- Detail Card -->
+                <div id="timeline-content" class="bg-blue-50 border border-blue-100 rounded-xl p-6 transition-all duration-300">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <p class="text-center text-sm text-slate-500">
+                Drafted by Asen Grozdanov, Professor | Department of Computer Science
+            </p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STORAGE ---
+        
+        const weightsData = {
+            labels: ['Continuous Assessment', 'Midterm Assessment', 'Final Assessment'],
+            values: [30, 30, 40],
+            details: [
+                {
+                    title: "Continuous Assessment (30%)",
+                    standard: "Quizzes & Discussions",
+                    proposed: "Weekly Lab Deliverables & Sprint Reviews. Focus: Requirements analysis, database schema design (ERD), UI/UX wireframing, and continuous Git repository activity."
+                },
+                {
+                    title: "Midterm Assessment (30%)",
+                    standard: "Proctored Exam",
+                    proposed: "Alpha Release / Design Defense. Focus: Functional database connectivity and core architectural design. Students must demonstrate a running environment (e.g., XAMPP/Docker) and valid CRUD operations on a normalized schema."
+                },
+                {
+                    title: "Final Assessment (40%)",
+                    standard: "Comprehensive Exam",
+                    proposed: "Final Product & Technical Defense. Focus: Fully deployed dynamic web application, validation of security measures (SQL injection prevention), comprehensive technical documentation, and client-facing presentation."
+                }
+            ]
+        };
+
+        const rubricData = [
+            {
+                title: "1. Methodology & Requirements Analysis",
+                clo: "Aligns with CLO 1 & 4",
+                levels: [
+                    { name: "Exemplary (4 pts)", desc: "Systematic & Justified. Requirements are exhaustively mapped to business needs. Use of SDLC is evident. Design artifacts (ER Diagrams, Data Flow Diagrams) perfectly match the implemented SQL schema.", color: "border-emerald-500 bg-emerald-50" },
+                    { name: "Proficient (3 pts)", desc: "Clear & Organized. Requirements are defined. Standard methodologies are followed. ER Diagrams are present but may have minor discrepancies with the final database structure.", color: "border-blue-500 bg-blue-50" },
+                    { name: "Developing (2 pts)", desc: "Inconsistent. Methodology is unclear or retrospectively applied. Requirements are vague or partially missing. Database design documents are sparse or un-normalized.", color: "border-yellow-500 bg-yellow-50" },
+                    { name: "Novice (1 pt)", desc: "Absent/Chaotic. No clear methodology followed. Project appears to be built 'on the fly' without prior analysis or database design.", color: "border-rose-500 bg-rose-50" }
+                ]
+            },
+            {
+                title: "2. Technical Implementation (Web & DB)",
+                clo: "Aligns with CLO 3",
+                levels: [
+                    { name: "Exemplary (4 pts)", desc: "Robust & Secure. High-quality code (PHP/JS) utilizing modular architecture. SQL queries are optimized and secure (Prepared Statements). UI is fully responsive. Solution is version-controlled (Git).", color: "border-emerald-500 bg-emerald-50" },
+                    { name: "Proficient (3 pts)", desc: "Functional. Code runs correctly and solves the problem. Good use of HTML/CSS/SQL. Basic error handling is present. Version control is used but commits are infrequent.", color: "border-blue-500 bg-blue-50" },
+                    { name: "Developing (2 pts)", desc: "Fragile. Code runs but breaks under edge cases. 'Spaghetti code' or mixing logic/presentation layers. Minimal security against SQL injection.", color: "border-yellow-500 bg-yellow-50" },
+                    { name: "Non-Functional (1 pt)", desc: "Code does not run or contains syntax errors that prevent execution. Logic is fundamentally flawed. Database connectivity fails.", color: "border-rose-500 bg-rose-50" }
+                ]
+            },
+            {
+                title: "3. Analytical Rigor & Integration",
+                clo: "Aligns with CLO 2",
+                levels: [
+                    { name: "Exemplary (4 pts)", desc: "Insightful Synthesis. Database and Web technologies are seamlessly integrated. Data validation is rigorous. Design decisions are justified by performance/security analysis.", color: "border-emerald-500 bg-emerald-50" },
+                    { name: "Proficient (3 pts)", desc: "Correct Application. Concepts from pre-requisite courses are applied correctly. Data is stored/retrieved accurately. Query optimization is standard.", color: "border-blue-500 bg-blue-50" },
+                    { name: "Developing (2 pts)", desc: "Superficial. Concepts are applied mechanically. Data analysis or reporting features are simplistic. Validation is missing or weak.", color: "border-yellow-500 bg-yellow-50" },
+                    { name: "Incorrect (1 pt)", desc: "Misapplication of web or database concepts. Data structure is irrelevant to the business problem.", color: "border-rose-500 bg-rose-50" }
+                ]
+            },
+            {
+                title: "4. Lab/Tool Proficiency",
+                clo: "Hands-on Component",
+                levels: [
+                    { name: "Exemplary (4 pts)", desc: "Expert Usage. Mastery of IDE (VS Code) and virtualization (Docker/XAMPP). Environment setup is reproducible. Dependency management is handled correctly.", color: "border-emerald-500 bg-emerald-50" },
+                    { name: "Proficient (3 pts)", desc: "Competent Usage. Uses tools effectively. Environment is set up correctly, though manual intervention might be needed on different machines.", color: "border-blue-500 bg-blue-50" },
+                    { name: "Struggling (2 pts)", desc: "Struggles with configuration. Paths are hard-coded. Inefficient use of debugging tools.", color: "border-yellow-500 bg-yellow-50" },
+                    { name: "Ineffective (1 pt)", desc: "Unable to configure the local server environment without significant assistance.", color: "border-rose-500 bg-rose-50" }
+                ]
+            },
+            {
+                title: "5. Technical Communication",
+                clo: "Aligns with CLO 5",
+                levels: [
+                    { name: "Exemplary (4 pts)", desc: "Professional. Report is indistinguishable from corporate specs. Presentation is persuasive, articulating 'Why' and 'How'. Q&A handled with technical confidence.", color: "border-emerald-500 bg-emerald-50" },
+                    { name: "Proficient (3 pts)", desc: "Clear. Report follows structure. Presentation covers main points. Q&A answers are correct but brief.", color: "border-blue-500 bg-blue-50" },
+                    { name: "Ambiguous (2 pts)", desc: "Report is disorganized or filled with jargon. Presentation is reading off slides. Difficulty answering technical questions.", color: "border-yellow-500 bg-yellow-50" },
+                    { name: "Incomprehensible (1 pt)", desc: "Report missing sections. Presentation unprepared. Fails to answer basic questions.", color: "border-rose-500 bg-rose-50" }
+                ]
+            }
+        ];
+
+        const timelineData = [
+            {
+                phase: "Month 1 (Topics 1-8)",
+                title: "Continuous Assessment & Midterm Prep",
+                deliverables: ["Project Proposal", "Requirement Analysis", "Database Design (ERD)"],
+                desc: "Focus on planning and schema design. Topic 8 (Design) marks the transition to implementation."
+            },
+            {
+                phase: "Month 2 (Topic 9)",
+                title: "Midterm Assessment: Alpha Release",
+                deliverables: ["Environment Setup", "Normalized Schema", "Basic UI Shell"],
+                desc: "Student must demonstrate the Architecture. Local server (Apache/MySQL) running. Valid CRUD operations on a normalized schema."
+            },
+            {
+                phase: "Month 3 (Topics 10-13)",
+                title: "Development & Testing",
+                deliverables: ["Server-side Logic (PHP)", "Client-side Interactivity (JS)", "Test Logs"],
+                desc: "Implementation phase. Intermediate Presentation (Topic 10) and Error Resolution (Topic 12)."
+            },
+            {
+                phase: "Month 4 (Topics 14-17)",
+                title: "Final Assessment: Defense",
+                deliverables: ["Executable Web App", "Source Code", "Final Technical Report"],
+                desc: "Final Defense & Deployment. Includes Lessons Learned and Future Research."
+            }
+        ];
+
+        // --- APP STATE ---
+        let weightChart = null;
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            renderRubric(0); // Default to first criteria
+            updateTimeline(0); // Default to first month
+            
+            // Set default view active in nav
+            document.querySelector('[data-target="summary"]').classList.add('border-blue-600', 'text-blue-600');
+            document.querySelector('[data-target="summary"]').classList.remove('border-transparent', 'text-slate-500');
+        });
+
+        // --- NAVIGATION LOGIC ---
+        function switchView(viewId) {
+            // Hide all sections
+            document.querySelectorAll('section').forEach(el => {
+                el.classList.add('hidden');
+            });
+            // Show target
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+
+            // Update Nav Styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('border-blue-600', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+            const activeBtn = document.querySelector(`[data-target="${viewId}"]`);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('border-blue-600', 'text-blue-600');
+        }
+
+        // --- CHART LOGIC ---
+        function initChart() {
+            const ctx = document.getElementById('weightingChart').getContext('2d');
+            weightChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: weightsData.labels,
+                    datasets: [{
+                        data: weightsData.values,
+                        backgroundColor: ['#3b82f6', '#8b5cf6', '#10b981'], // Blue, Violet, Emerald
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    onClick: (evt, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            updateWeightDetails(index);
+                        }
+                    }
+                }
+            });
+            
+            // Initial detail view
+            updateWeightDetails(0);
+        }
+
+        function updateWeightDetails(index) {
+            const data = weightsData.details[index];
+            document.getElementById('weight-title').innerText = data.title;
+            document.getElementById('weight-content').innerHTML = `
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="p-4 bg-white rounded-lg border border-slate-200">
+                        <h4 class="text-xs font-bold uppercase text-slate-400 mb-1">Standard Definition</h4>
+                        <p class="text-slate-700">${data.standard}</p>
+                    </div>
+                    <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <h4 class="text-xs font-bold uppercase text-blue-500 mb-1">Proposed Definition</h4>
+                        <p class="text-blue-900 font-medium">${data.proposed}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- RUBRIC LOGIC ---
+        function renderRubric(idx) {
+            const data = rubricData[idx];
+            const container = document.getElementById('rubric-display');
+            
+            // Update buttons
+            document.querySelectorAll('.rubric-btn').forEach(btn => {
+                btn.classList.remove('border-blue-200', 'bg-blue-50', 'text-blue-700', 'ring-2', 'ring-blue-500');
+                btn.classList.add('border-slate-200', 'text-slate-700');
+            });
+            const activeBtn = document.querySelector(`.rubric-btn[data-idx="${idx}"]`);
+            activeBtn.classList.remove('border-slate-200', 'text-slate-700');
+            activeBtn.classList.add('border-blue-200', 'bg-blue-50', 'text-blue-700', 'ring-2', 'ring-blue-500');
+
+            // Build HTML
+            let html = `
+                <div class="flex justify-between items-end border-b border-slate-200 pb-4">
+                    <h3 class="text-xl font-bold text-slate-800">${data.title}</h3>
+                    <span class="text-sm text-slate-500 font-mono bg-slate-100 px-2 py-1 rounded">${data.clo}</span>
+                </div>
+                <div class="grid gap-4">
+            `;
+
+            data.levels.forEach(level => {
+                html += `
+                    <div class="p-4 rounded-lg border-l-4 ${level.color} transition-all hover:shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-1">${level.name}</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed">${level.desc}</p>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // --- TIMELINE LOGIC ---
+        function updateTimeline(index) {
+            const data = timelineData[index];
+            const content = document.getElementById('timeline-content');
+            
+            // Update dots
+            document.querySelectorAll('.timeline-dot').forEach((dot, idx) => {
+                if(idx === index) {
+                    dot.classList.remove('bg-white', 'text-slate-500', 'border-slate-300');
+                    dot.classList.add('bg-blue-600', 'text-white', 'ring-4', 'ring-blue-100');
+                } else {
+                    dot.classList.add('bg-white', 'text-slate-500', 'border-slate-300');
+                    dot.classList.remove('bg-blue-600', 'text-white', 'ring-4', 'ring-blue-100');
+                }
+            });
+
+            // Update content
+            content.innerHTML = `
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                    <h3 class="text-lg font-bold text-blue-900">${data.title}</h3>
+                    <span class="text-xs font-bold uppercase tracking-wide bg-blue-200 text-blue-800 px-2 py-1 rounded mt-2 md:mt-0">${data.phase}</span>
+                </div>
+                <p class="text-blue-900/80 mb-6">${data.desc}</p>
+                
+                <h4 class="text-xs font-bold uppercase text-blue-400 mb-2">Key Deliverables</h4>
+                <ul class="grid sm:grid-cols-3 gap-2">
+                    ${data.deliverables.map(d => `
+                        <li class="bg-white/60 rounded px-3 py-2 text-sm text-blue-900 font-medium border border-blue-100 flex items-center">
+                            <span class="mr-2 text-blue-500">📎</span> ${d}
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+        }
+
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEM Integrative Project Assessment Framework</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #334155; }
+        .chart-container { position: relative; width: 100%; height: 300px; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .timeline-connector { width: 2px; background-color: #E2E8F0; position: absolute; top: 0; bottom: 0; left: 15px; z-index: 0; }
+        .active-tab { border-bottom: 2px solid #4F46E5; color: #4F46E5; font-weight: 600; }
+        .inactive-tab { color: #64748B; hover:text-slate-900; }
+    </style>
+    <!-- 
+    Application Structure Plan:
+    1. Executive Header: Clear Title and "From/To" details from the Memo.
+    2. Executive Summary Panel: High-level rationale (Text + Icons).
+    3. Assessment Transformation (Interactive Doughnut): Visualizes the 30/30/40 split. Clicking slices reveals the "Proposed Definition" vs "Standard".
+    4. Competency Rubric (Interactive Radar/Tabs): Allows users to click "Exemplary", "Proficient", etc., to see specific criteria for the 5 dimensions.
+    5. Timeline (Visual List): 4-week Sprint visualization.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="p-6 md:p-10 max-w-7xl mx-auto">
+
+    <!-- Header / Memo Context -->
+    <header class="mb-10 border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <h5 class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">Memorandum Proposal</h5>
+            <h1 class="text-3xl font-extrabold text-slate-900">Standardized Assessment Rubric</h1>
+            <p class="text-slate-500 mt-1">For STEM Integrative Projects (CS 251)</p>
+        </div>
+        <div class="text-sm text-slate-500 text-right">
+            <p><strong>To:</strong> Academic Leadership</p>
+            <p><strong>From:</strong> Asen Grozdanov, Professor</p>
+            <p><strong>Date:</strong> December 9, 2025</p>
+        </div>
+    </header>
+
+    <!-- Executive Summary Section -->
+    <section class="grid md:grid-cols-3 gap-6 mb-10">
+        <div class="md:col-span-2 card p-8 bg-gradient-to-br from-indigo-900 to-indigo-800 text-white">
+            <h2 class="text-xl font-bold mb-4">Executive Summary & Rationale</h2>
+            <p class="mb-4 leading-relaxed text-indigo-100">
+                The current assessment model, heavily reliant on computational exams and proctoring, does not align with the practical nature of Integrative Projects.
+            </p>
+            <p class="font-semibold text-white">
+                We propose a <span class="text-emerald-300">Competency-Based Framework</span> shifting focus from isolated testing to <span class="text-emerald-300">Milestone Deliverables</span>.
+            </p>
+            <div class="mt-6 flex gap-4">
+                <div class="bg-indigo-700/50 p-3 rounded-lg flex-1">
+                    <span class="block text-xs uppercase text-indigo-300 font-bold">Current Issue</span>
+                    <span class="text-sm">Isolated, Proctored Exams</span>
+                </div>
+                <div class="bg-emerald-500/20 p-3 rounded-lg border border-emerald-500/30 flex-1">
+                    <span class="block text-xs uppercase text-emerald-300 font-bold">Proposed Solution</span>
+                    <span class="text-sm">Lab Deliverables & Defenses</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Grading Scale Summary -->
+        <div class="card p-6 flex flex-col justify-center">
+            <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Proposed Performance Scale</h3>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-semibold text-emerald-700">Exemplary</span>
+                    <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded">93-100%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-emerald-500 h-full" style="width: 100%"></div>
+                </div>
+                
+                <div class="flex justify-between items-center mt-2">
+                    <span class="text-sm font-semibold text-blue-700">Proficient</span>
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">83-92%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-blue-500 h-full" style="width: 85%"></div>
+                </div>
+
+                <div class="flex justify-between items-center mt-2">
+                    <span class="text-sm font-semibold text-amber-700">Developing</span>
+                    <span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">70-82%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-amber-400 h-full" style="width: 70%"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Assessment Transformation (Chart) -->
+    <section class="grid lg:grid-cols-2 gap-8 mb-10">
+        <div class="card p-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Weighting & Structure</h3>
+            <p class="text-sm text-slate-500 mb-6">Redefining assessment nature while maintaining the 30/30/40 university standard. <span class="text-indigo-600 font-semibold cursor-pointer">Click chart segments for details.</span></p>
+            
+            <div class="chart-container">
+                <canvas id="weightChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Dynamic Details Panel -->
+        <div class="card p-8 bg-slate-50 border border-slate-200" id="assessment-details">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Selected Component</h4>
+            <h2 class="text-2xl font-bold text-indigo-700 mb-4" id="detail-title">Midterm Assessment</h2>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white p-4 rounded border border-slate-100">
+                    <span class="block text-xs text-slate-400 font-semibold">Weight</span>
+                    <span class="text-xl font-bold text-slate-800" id="detail-weight">30%</span>
+                </div>
+                <div class="bg-white p-4 rounded border border-slate-100">
+                    <span class="block text-xs text-slate-400 font-semibold">Standard Model</span>
+                    <span class="text-sm font-medium text-slate-600" id="detail-standard">Proctored Exam</span>
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 p-5 rounded-lg border-l-4 border-indigo-500">
+                <span class="block text-xs text-indigo-400 font-bold uppercase mb-1">Proposed Definition</span>
+                <p class="text-indigo-900 font-medium leading-relaxed" id="detail-proposed">
+                    Alpha Release / Prototype Defense. Focus: Functional prototype demonstrating core logic (OOP structure) and initial data integration.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rubric Explorer -->
+    <section class="card p-8 mb-10">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+                <h3 class="text-xl font-bold text-slate-900">Standardized Rubric Explorer</h3>
+                <p class="text-sm text-slate-500">Explore criteria across the 5 dimensions.</p>
+            </div>
+            <!-- Tabs -->
+            <div class="flex space-x-4 bg-slate-100 p-1 rounded-lg mt-4 md:mt-0">
+                <button onclick="setRubricLevel('Exemplary')" id="btn-exemplary" class="px-4 py-2 rounded-md text-sm font-semibold bg-white text-emerald-700 shadow-sm transition-all">Exemplary</button>
+                <button onclick="setRubricLevel('Proficient')" id="btn-proficient" class="px-4 py-2 rounded-md text-sm font-semibold text-slate-500 hover:bg-white/50 transition-all">Proficient</button>
+                <button onclick="setRubricLevel('Developing')" id="btn-developing" class="px-4 py-2 rounded-md text-sm font-semibold text-slate-500 hover:bg-white/50 transition-all">Developing</button>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="rubric-grid">
+            <!-- Cards injected via JS -->
+        </div>
+    </section>
+
+    <!-- Timeline -->
+    <section class="card p-8 bg-slate-900 text-white">
+        <h3 class="text-xl font-bold mb-8 text-center md:text-left">4-Months Implementation Timeline</h3>
+        
+        <div class="relative grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Connector Line (Desktop) -->
+            <div class="hidden md:block absolute top-6 left-0 right-0 h-0.5 bg-slate-700 z-0"></div>
+
+            <!-- Week 1 -->
+            <div class="relative z-10 group">
+                <div class="w-12 h-12 rounded-full bg-slate-800 border-4 border-slate-700 flex items-center justify-center font-bold mb-4 mx-auto md:mx-0 group-hover:border-indigo-500 group-hover:bg-indigo-600 transition-all">1</div>
+                <h4 class="text-lg font-bold text-indigo-300">Analysis</h4>
+                <p class="text-xs text-slate-400 uppercase font-bold mb-2">Topics 1-4</p>
+                <div class="bg-slate-800 p-3 rounded text-sm text-slate-300 border border-slate-700">
+                    <span class="block text-xs text-slate-500 uppercase mb-1">Deliverable</span>
+                    Project Proposal & Requirement Analysis
+                </div>
+            </div>
+
+            <!-- Week 2 -->
+            <div class="relative z-10 group">
+                <div class="w-12 h-12 rounded-full bg-slate-800 border-4 border-slate-700 flex items-center justify-center font-bold mb-4 mx-auto md:mx-0 group-hover:border-blue-500 group-hover:bg-blue-600 transition-all">2</div>
+                <h4 class="text-lg font-bold text-blue-300">Midterm</h4>
+                <p class="text-xs text-slate-400 uppercase font-bold mb-2">Topics 5-9</p>
+                <div class="bg-slate-800 p-3 rounded text-sm text-slate-300 border border-slate-700">
+                    <span class="block text-xs text-slate-500 uppercase mb-1">Assessment</span>
+                    <strong>Alpha Demo:</strong> Running skeleton with core OOP logic.
+                </div>
+            </div>
+
+            <!-- Week 3 -->
+            <div class="relative z-10 group">
+                <div class="w-12 h-12 rounded-full bg-slate-800 border-4 border-slate-700 flex items-center justify-center font-bold mb-4 mx-auto md:mx-0 group-hover:border-indigo-500 group-hover:bg-indigo-600 transition-all">3</div>
+                <h4 class="text-lg font-bold text-indigo-300">Dev & Test</h4>
+                <p class="text-xs text-slate-400 uppercase font-bold mb-2">Topics 10-13</p>
+                <div class="bg-slate-800 p-3 rounded text-sm text-slate-300 border border-slate-700">
+                    <span class="block text-xs text-slate-500 uppercase mb-1">Deliverable</span>
+                    Code Review & Testing Log
+                </div>
+            </div>
+
+            <!-- Week 4 -->
+            <div class="relative z-10 group">
+                <div class="w-12 h-12 rounded-full bg-slate-800 border-4 border-slate-700 flex items-center justify-center font-bold mb-4 mx-auto md:mx-0 group-hover:border-emerald-500 group-hover:bg-emerald-600 transition-all">4</div>
+                <h4 class="text-lg font-bold text-emerald-300">Final</h4>
+                <p class="text-xs text-slate-400 uppercase font-bold mb-2">Topics 14-17</p>
+                <div class="bg-slate-800 p-3 rounded text-sm text-slate-300 border border-slate-700">
+                    <span class="block text-xs text-slate-500 uppercase mb-1">Assessment</span>
+                    <strong>Product Defense:</strong> Final Report & Working App.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JS Logic -->
+    <script>
+        // --- Data ---
+        const assessmentData = [
+            { label: 'Continuous', value: 30, color: '#64748B', standard: 'Quizzes/Discussions', proposed: 'Weekly Lab Deliverables & Sprint Reviews. Focus: Requirements, UML, Git activity.' },
+            { label: 'Midterm', value: 30, color: '#4F46E5', standard: 'Proctored Exam', proposed: 'Alpha Release / Prototype Defense. Focus: Functional prototype demonstrating core OOP logic.' },
+            { label: 'Final', value: 40, color: '#10B981', standard: 'Comprehensive Exam', proposed: 'Final Product & Technical Defense. Focus: Deployed solution, statistical validation, tech report.' }
+        ];
+
+        const rubricCriteria = {
+            'Exemplary': [
+                { title: 'Methodology', text: 'Systematic & Justified. Requirements exhaustively mapped. SDLC evident.' },
+                { title: 'Tech Implementation', text: 'Robust & Optimized. Advanced OOP (Polymorphism) used effectively. Git integration.' },
+                { title: 'Analytical Rigor', text: 'Insightful Synthesis. Seamless Econ/Stats integration. Critical findings.' },
+                { title: 'Lab Proficiency', text: 'Expert Usage. Master of IDE & Virtualization. Reproducible env.' },
+                { title: 'Communication', text: 'Professional. Report is corporate-grade. Persuasive defense.' }
+            ],
+            'Proficient': [
+                { title: 'Methodology', text: 'Clear & Organized. Standard methodologies. Minor artifact discrepancies.' },
+                { title: 'Tech Implementation', text: 'Functional. Code solves problem. Good OOP usage. Basic error handling.' },
+                { title: 'Analytical Rigor', text: 'Correct Application. Concepts applied correctly. Standard interpretation.' },
+                { title: 'Lab Proficiency', text: 'Competent Usage. Effective tool use. Manual intervention maybe needed.' },
+                { title: 'Communication', text: 'Clear. Report follows structure. Presentation covers main points.' }
+            ],
+            'Developing': [
+                { title: 'Methodology', text: 'Inconsistent. Methodology unclear. Requirements vague.' },
+                { title: 'Tech Implementation', text: 'Fragile. Breaks under edge cases. Procedural style instead of OOP.' },
+                { title: 'Analytical Rigor', text: 'Superficial. Mechanical application. Simplistic analysis.' },
+                { title: 'Lab Proficiency', text: 'Struggling. Hard-coded paths. Inefficient IDE usage.' },
+                { title: 'Communication', text: 'Ambiguous. Disorganized report. Reading off slides.' }
+            ]
+        };
+
+        // --- Chart Config ---
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        const weightChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: assessmentData.map(d => d.label),
+                datasets: [{
+                    data: assessmentData.map(d => d.value),
+                    backgroundColor: assessmentData.map(d => d.color),
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                    tooltip: { enabled: false } // Custom interaction
+                },
+                onClick: (e, activeEls) => {
+                    if (activeEls.length > 0) {
+                        const idx = activeEls[0].index;
+                        updateDetails(idx);
+                    }
+                }
+            }
+        });
+
+        // --- Interaction Logic ---
+        function updateDetails(index) {
+            const data = assessmentData[index];
+            document.getElementById('detail-title').textContent = data.label + " Assessment";
+            document.getElementById('detail-weight').textContent = data.value + "%";
+            document.getElementById('detail-standard').textContent = data.standard;
+            document.getElementById('detail-proposed').textContent = data.proposed;
+            
+            // Visual feedback on card
+            const card = document.getElementById('assessment-details');
+            card.style.borderColor = data.color;
+            card.classList.remove('bg-slate-50');
+            card.classList.add('bg-white');
+            setTimeout(() => card.classList.add('bg-slate-50'), 300);
+        }
+
+        function setRubricLevel(level) {
+            // Update Buttons
+            ['Exemplary', 'Proficient', 'Developing'].forEach(l => {
+                const btn = document.getElementById(`btn-${l.toLowerCase()}`);
+                if (l === level) {
+                    btn.className = "px-4 py-2 rounded-md text-sm font-semibold bg-white text-indigo-700 shadow-sm border border-slate-100 transition-all transform scale-105";
+                } else {
+                    btn.className = "px-4 py-2 rounded-md text-sm font-semibold text-slate-500 hover:text-slate-800 transition-all";
+                }
+            });
+
+            // Update Grid
+            const grid = document.getElementById('rubric-grid');
+            grid.innerHTML = '';
+            
+            rubricCriteria[level].forEach(item => {
+                const card = document.createElement('div');
+                card.className = "p-4 rounded-lg bg-slate-50 border border-slate-100 hover:border-indigo-200 transition-colors";
+                card.innerHTML = `
+                    <h5 class="text-xs font-bold uppercase text-slate-400 mb-2 tracking-wider">${item.title}</h5>
+                    <p class="text-sm font-medium text-slate-700 leading-snug">${item.text}</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- Init ---
+        // Initialize with Midterm selected
+        updateDetails(1);
+        // Initialize Rubric
+        setRubricLevel('Exemplary');
+
+    </script>
+</body>
+</html>
+
+
+
+
